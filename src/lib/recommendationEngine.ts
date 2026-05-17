@@ -104,9 +104,21 @@ function scoreArea(area: MockRentalArea, preferences: UserPreferences): ScoredRe
     score -= 9;
   }
 
+  let rawScore = score;
+  if (budget < 1000 && area.price > budget + 175) {
+    rawScore -= 15;
+  }
+  if (preferences.bathroom === "Private" && area.bathroom !== "Private bath") {
+    rawScore -= 8;
+  }
+  if (preferences.furniture === "Fully" && area.furnished !== "full") {
+    rawScore -= 5;
+  }
+
   return {
     ...area,
     fitScore: clamp(Math.round(score), 61, 96),
+    rawScore: Math.round(rawScore),
     scoreReasons: reasons.slice(0, 4),
   };
 }

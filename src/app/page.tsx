@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { defaultPreferences } from "@/data/mockNeighborhoods";
 import { generateChecklist } from "@/lib/checklistGenerator";
 import { generateRecommendation } from "@/lib/recommendationEngine";
@@ -49,6 +49,62 @@ const otherMatchImages = [
   "/images/match-card-3.jpg",
   "/images/match-card-4.jpg",
 ];
+
+type ResultState = "normal" | "unsupported-location" | "no-strong-match";
+
+function isSupportedDemoScope(preferences: UserPreferences) {
+  return (
+    /san diego/i.test(preferences.city) ||
+    /uc san diego|ucsd/i.test(preferences.destination)
+  );
+}
+
+function getResultState(
+  preferences: UserPreferences,
+  recommendation: RecommendationResult,
+): ResultState {
+  if (!isSupportedDemoScope(preferences)) return "unsupported-location";
+  if (recommendation.bestMatch.rawScore < 60) return "no-strong-match";
+  return "normal";
+}
+
+function formatLocationInput(preferences: UserPreferences) {
+  const city = preferences.city.trim();
+  const destination = preferences.destination.trim();
+  if (city && destination) return `${city} / ${destination}`;
+  return city || destination || "that location";
+}
+
+const toBudget = (value: string) => {
+  const parsed = Number(value.replace(/[^0-9]/g, ""));
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+function getNoStrongMatchSuggestions(preferences: UserPreferences) {
+  const suggestions: string[] = [];
+  const budget = toBudget(preferences.budget);
+  const commute = Number(preferences.commute);
+
+  if (budget > 0 && budget < 1000) {
+    suggestions.push("Increase monthly budget to open more realistic San Diego / UCSD options.");
+  }
+  if (Number.isFinite(commute) && commute <= 15) {
+    suggestions.push("Expand your commute target beyond 15 minutes to include more sample areas.");
+  }
+  if (preferences.roomType === "Private room" || preferences.bathroom === "Private") {
+    suggestions.push("Consider shared room or shared bathroom options while comparing tradeoffs.");
+  }
+  if (preferences.furniture === "Fully" || preferences.furniture === "Partially") {
+    suggestions.push("Relax the furnished requirement or plan a separate furniture setup.");
+  }
+  if (preferences.hasCar === "No") {
+    suggestions.push("Check transit-friendly areas or increase commute flexibility if you do not have a car.");
+  }
+
+  return suggestions.length
+    ? suggestions
+    : ["Review budget, commute, room type, and furniture constraints before generating another plan."];
+}
 
 async function requestAiEnhancement({
   preferences,
@@ -139,12 +195,15 @@ export default function SettlyfeCopilotV1() {
       const nextRecommendation = generateRecommendation(preferences);
       const nextChecklist = generateChecklist(preferences, nextRecommendation);
       void (async () => {
-        const aiPlan = await requestAiEnhancement({
-          preferences,
-          recommendation: nextRecommendation,
-          checklist: nextChecklist,
-          signal: controller.signal,
-        });
+        const nextResultState = getResultState(preferences, nextRecommendation);
+        const aiPlan = nextResultState === "normal"
+          ? await requestAiEnhancement({
+              preferences,
+              recommendation: nextRecommendation,
+              checklist: nextChecklist,
+              signal: controller.signal,
+            })
+          : null;
 
         if (controller.signal.aborted || generationId.current !== currentGenerationId) {
           return;
@@ -257,6 +316,7 @@ export default function SettlyfeCopilotV1() {
 
       {screen === "result" ? (
         <ResultScreen
+          preferences={preferences}
           recommendation={recommendation}
           onBack={() => setScreen("lifestylePriorities")}
           onChecklist={() => setScreen("checklist")}
@@ -559,13 +619,13 @@ function LoadingScreen({ currentStep }: { currentStep: number }) {
                   >
                     <span
                       className={`grid size-6 place-items-center rounded-full ${
-                        done || active ? "bg-[#eeeeff]" : "border border-[#d9d9dc]"
+                        done ? "bg-[#6463F0] text-white" : active ? "text-[#6463F0]" : "border border-[#d9d9dc]"
                       }`}
                     >
                       {done ? (
-                        <span className="size-3 rounded-full border-2 border-[#6463F0] bg-[#6463F0]" />
+                        <Check size={15} strokeWidth={3} />
                       ) : active ? (
-                        <span className="size-3.5 animate-spin rounded-full border-2 border-[#6463F0] border-t-transparent" />
+                        <span className="size-6 animate-spin rounded-full border-2 border-[#6463F0] border-t-transparent" />
                       ) : null}
                     </span>
                     {step}
@@ -581,14 +641,44 @@ function LoadingScreen({ currentStep }: { currentStep: number }) {
 }
 
 function ResultScreen({
+  preferences,
   recommendation,
   onBack,
   onChecklist,
 }: {
+  preferences: UserPreferences;
   recommendation: RecommendationResult;
   onBack: () => void;
   onChecklist: () => void;
 }) {
+  const resultState = getResultState(preferences, recommendation);
+
+  if (resultState === "unsupported-location") {
+    return (
+      <GuardrailResultScreen
+        title="Demo area not available yet"
+        body={`This V2 demo currently uses controlled San Diego / UCSD sample data, so it can't generate a reliable match for ${formatLocationInput(preferences)} yet.`}
+        suggestions={[
+          "Try San Diego, CA and UC San Diego to view the full AI rental plan demo.",
+          "Add live rental data in a future version to support more cities.",
+          "Expand the sample dataset before comparing unsupported locations.",
+        ]}
+        onBack={onBack}
+      />
+    );
+  }
+
+  if (resultState === "no-strong-match") {
+    return (
+      <GuardrailResultScreen
+        title="No strong match yet"
+        body="Your current budget, commute, room, and housing preferences are difficult to satisfy within the controlled San Diego / UCSD sample data."
+        suggestions={getNoStrongMatchSuggestions(preferences)}
+        onBack={onBack}
+      />
+    );
+  }
+
   return (
     <div className="flex h-full flex-col bg-[#f7f7f8]">
       <FlowTopBar title="Your AI Plan" onBack={onBack} />
@@ -642,6 +732,51 @@ function ResultScreen({
           View Move-in Checklist
         </Button>
       </StickyFooter>
+    </div>
+  );
+}
+
+function GuardrailResultScreen({
+  title,
+  body,
+  suggestions,
+  onBack,
+}: {
+  title: string;
+  body: string;
+  suggestions: string[];
+  onBack: () => void;
+}) {
+  return (
+    <div className="flex h-full flex-col bg-[#f7f7f8]">
+      <FlowTopBar title="Your AI Plan" onBack={onBack} />
+      <div className="scrollbar-hidden flex-1 overflow-y-auto px-4 pb-8 pt-4">
+        <section className="rounded-[14px] bg-white p-5 shadow-[0_10px_28px_rgba(0,0,0,0.05)]">
+          <div className="flex gap-3">
+            <Sparkles className="mt-1 shrink-0 text-[#6463F0]" size={18} />
+            <div>
+              <h1 className="text-[18px] leading-[24px]">{title}</h1>
+              <p className="mt-3 text-[14px] leading-[22px] text-[#646165]">
+                {body}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-5 rounded-[12px] bg-white p-4 shadow-[0_10px_28px_rgba(0,0,0,0.05)]">
+          <h2 className="mb-4 text-[17px] font-extrabold">Suggested next steps</h2>
+          <ul className="grid gap-4">
+            {suggestions.map((suggestion) => (
+              <li key={suggestion} className="flex items-start gap-3 text-[15px] leading-[22px] text-[#262628]">
+                <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-[#eeeeff] text-[#6463F0]">
+                  <Check size={13} strokeWidth={3} />
+                </span>
+                <span>{suggestion}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
     </div>
   );
 }

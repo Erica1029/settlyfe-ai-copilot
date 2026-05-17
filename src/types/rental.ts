@@ -62,6 +62,7 @@ export type RecommendationResult = {
 
 export type ScoredRentalArea = MockRentalArea & {
   fitScore: number;
+  rawScore: number;
   scoreReasons: string[];
 };
 
