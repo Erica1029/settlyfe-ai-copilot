@@ -138,25 +138,25 @@ export default function SettlyfeCopilotV1() {
     const timeout = window.setTimeout(() => {
       const nextRecommendation = generateRecommendation(preferences);
       const nextChecklist = generateChecklist(preferences, nextRecommendation);
-      setRecommendation(nextRecommendation);
-      setChecklist(nextChecklist);
-      setCompleted({});
-      setSaved(false);
-      setScreen("result");
-      window.clearInterval(interval);
-      void requestAiEnhancement({
-        preferences,
-        recommendation: nextRecommendation,
-        checklist: nextChecklist,
-        signal: controller.signal,
-      }).then((aiPlan) => {
-        if (!aiPlan || controller.signal.aborted || generationId.current !== currentGenerationId) {
+      void (async () => {
+        const aiPlan = await requestAiEnhancement({
+          preferences,
+          recommendation: nextRecommendation,
+          checklist: nextChecklist,
+          signal: controller.signal,
+        });
+
+        if (controller.signal.aborted || generationId.current !== currentGenerationId) {
           return;
         }
 
-        setRecommendation((current) => mergeAiRecommendation(current, aiPlan));
-        setChecklist((current) => mergeAiChecklist(current, aiPlan));
-      });
+        setRecommendation(aiPlan ? mergeAiRecommendation(nextRecommendation, aiPlan) : nextRecommendation);
+        setChecklist(aiPlan ? mergeAiChecklist(nextChecklist, aiPlan) : nextChecklist);
+        setCompleted({});
+        setSaved(false);
+        setScreen("result");
+        window.clearInterval(interval);
+      })();
     }, 2500);
 
     return () => {
