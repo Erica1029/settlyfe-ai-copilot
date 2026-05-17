@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { defaultPreferences } from "@/data/mockNeighborhoods";
 import { generateChecklist } from "@/lib/checklistGenerator";
 import { generateRecommendation } from "@/lib/recommendationEngine";
+import { buildAiPlanRequest, type AiPlanResponse } from "@/types/aiPlan";
 import type { ChecklistSection, RecommendationResult, Screen, UserPreferences } from "@/types/rental";
 import {
   BottomNav,
@@ -49,6 +50,65 @@ const otherMatchImages = [
   "/images/match-card-4.jpg",
 ];
 
+async function requestAiEnhancement({
+  preferences,
+  recommendation,
+  checklist,
+  signal,
+}: {
+  preferences: UserPreferences;
+  recommendation: RecommendationResult;
+  checklist: ChecklistSection[];
+  signal: AbortSignal;
+}) {
+  try {
+    const response = await fetch("/api/ai-plan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(buildAiPlanRequest(preferences, recommendation, checklist)),
+      signal,
+    });
+
+    if (!response.ok) return null;
+
+    const aiPlan = (await response.json()) as AiPlanResponse;
+    return aiPlan.status === "ai" ? aiPlan : null;
+  } catch {
+    return null;
+  }
+}
+
+function mergeAiRecommendation(
+  recommendation: RecommendationResult,
+  aiPlan: AiPlanResponse,
+): RecommendationResult {
+  return {
+    ...recommendation,
+    intro: aiPlan.explanation.intro,
+    budgetFit: aiPlan.explanation.budgetFit,
+    commuteAnalysis: aiPlan.explanation.commuteAnalysis,
+    lifestyleFit: aiPlan.explanation.lifestyleFit,
+    whyThisFits: aiPlan.explanation.whyThisFits,
+    watchOuts: aiPlan.explanation.watchOuts,
+    nextSteps: aiPlan.explanation.nextSteps,
+  };
+}
+
+function mergeAiChecklist(
+  checklist: ChecklistSection[],
+  aiPlan: AiPlanResponse,
+): ChecklistSection[] {
+  const aiTitles = new Map(aiPlan.checklist.map((item) => [item.id, item.title]));
+
+  return checklist.map((section) => ({
+    ...section,
+    items: section.items.map((item) => ({
+      ...item,
+      title: aiTitles.get(item.id) ?? item.title,
+    })),
+  }));
+}
+
 export default function SettlyfeCopilotV1() {
   const [screen, setScreen] = useState<Screen>("home");
   const [preferences, setPreferences] = useState<UserPreferences>(defaultPreferences);
@@ -62,9 +122,14 @@ export default function SettlyfeCopilotV1() {
   const [error, setError] = useState("");
   const [completed, setCompleted] = useState<Record<string, boolean>>({});
   const [saved, setSaved] = useState(false);
+  const generationId = useRef(0);
 
   useEffect(() => {
     if (screen !== "loading") return;
+
+    const currentGenerationId = generationId.current + 1;
+    generationId.current = currentGenerationId;
+    const controller = new AbortController();
 
     setLoadingIndex(0);
     const interval = window.setInterval(() => {
@@ -72,15 +137,30 @@ export default function SettlyfeCopilotV1() {
     }, 430);
     const timeout = window.setTimeout(() => {
       const nextRecommendation = generateRecommendation(preferences);
+      const nextChecklist = generateChecklist(preferences, nextRecommendation);
       setRecommendation(nextRecommendation);
-      setChecklist(generateChecklist(preferences, nextRecommendation));
+      setChecklist(nextChecklist);
       setCompleted({});
       setSaved(false);
       setScreen("result");
       window.clearInterval(interval);
+      void requestAiEnhancement({
+        preferences,
+        recommendation: nextRecommendation,
+        checklist: nextChecklist,
+        signal: controller.signal,
+      }).then((aiPlan) => {
+        if (!aiPlan || controller.signal.aborted || generationId.current !== currentGenerationId) {
+          return;
+        }
+
+        setRecommendation((current) => mergeAiRecommendation(current, aiPlan));
+        setChecklist((current) => mergeAiChecklist(current, aiPlan));
+      });
     }, 2500);
 
     return () => {
+      controller.abort();
       window.clearInterval(interval);
       window.clearTimeout(timeout);
     };

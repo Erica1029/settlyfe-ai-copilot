@@ -5,12 +5,23 @@ import type {
   UserPreferences,
 } from "@/types/rental";
 
+const isSampleMarket = (preferences: UserPreferences) =>
+  /san diego|ucsd|uc san diego|la jolla/i.test(
+    `${preferences.city} ${preferences.destination}`,
+  );
+
+const commuteDestinationLabel = (preferences: UserPreferences) =>
+  isSampleMarket(preferences)
+    ? preferences.destination || "UCSD"
+    : "the UCSD sample area";
+
 export function generateChecklist(
   preferences: UserPreferences,
   recommendation: RecommendationResult,
 ): ChecklistSection[] {
   const budget = preferences.budget.replace(/[^0-9]/g, "") || "1500";
   const best = recommendation.bestMatch;
+  const destinationLabel = commuteDestinationLabel(preferences);
   const noCar = preferences.hasCar === "No";
   const needsFurniture = preferences.furniture === "Fully" || preferences.furniture === "Partially";
   const urgent = preferences.moveInTimeline === "ASAP";
@@ -64,8 +75,8 @@ export function generateChecklist(
         {
           id: "commute",
           title: noCar
-            ? `Confirm bus / shuttle commute to ${preferences.destination}`
-            : `Drive the route to ${preferences.destination} during peak hours`,
+            ? `Confirm bus / shuttle commute to ${destinationLabel}`
+            : `Drive the sample route to ${destinationLabel} during peak hours`,
         },
       ],
     },

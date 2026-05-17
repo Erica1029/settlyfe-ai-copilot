@@ -16,9 +16,20 @@ const clamp = (value: number, min: number, max: number) =>
 
 const includes = (items: string[], target: string) => items.includes(target);
 
+const isSampleMarket = (preferences: UserPreferences) =>
+  /san diego|ucsd|uc san diego|la jolla/i.test(
+    `${preferences.city} ${preferences.destination}`,
+  );
+
+const commuteDestinationLabel = (preferences: UserPreferences) =>
+  isSampleMarket(preferences)
+    ? preferences.destination || "UCSD"
+    : "the UCSD sample area";
+
 function scoreArea(area: MockRentalArea, preferences: UserPreferences): ScoredRentalArea {
   const budget = toBudget(preferences.budget) || 1500;
   const commuteTarget = Number(preferences.commute) || 30;
+  const destinationLabel = commuteDestinationLabel(preferences);
   const noCar = preferences.hasCar === "No";
   const wantsPrivate = preferences.roomType === "Private room";
   const wantsStudio = preferences.roomType === "Studio" || preferences.roomType === "Entire unit";
@@ -38,7 +49,7 @@ function scoreArea(area: MockRentalArea, preferences: UserPreferences): ScoredRe
 
   if (area.commuteMinutes <= commuteTarget) {
     score += 16;
-    reasons.push(`${area.commuteMinutes} min to ${preferences.destination || "campus"}`);
+    reasons.push(`${area.commuteMinutes} min to ${destinationLabel}`);
   } else {
     score -= 8;
   }
@@ -103,6 +114,8 @@ function scoreArea(area: MockRentalArea, preferences: UserPreferences): ScoredRe
 export function generateRecommendation(preferences: UserPreferences): RecommendationResult {
   const budget = toBudget(preferences.budget) || 1500;
   const commuteTarget = Number(preferences.commute) || 30;
+  const destinationLabel = commuteDestinationLabel(preferences);
+  const sampleMarket = isSampleMarket(preferences);
   const scored = mockNeighborhoods
     .map((area) => scoreArea(area, preferences))
     .sort((a, b) => b.fitScore - a.fitScore);
@@ -118,7 +131,7 @@ export function generateRecommendation(preferences: UserPreferences): Recommenda
 
   const commuteAnalysis =
     bestMatch.commuteMinutes <= commuteTarget
-      ? `${bestMatch.area} keeps the commute around ${bestMatch.commuteMinutes} min, inside your ${commuteTarget} min target.`
+      ? `${bestMatch.area} keeps the sample commute around ${bestMatch.commuteMinutes} min to ${destinationLabel}, inside your ${commuteTarget} min target.`
       : `${bestMatch.area} may exceed your ${commuteTarget} min commute target during peak hours.`;
 
   const watchOuts = [...bestMatch.tradeoffs];
@@ -135,8 +148,9 @@ export function generateRecommendation(preferences: UserPreferences): Recommenda
   return {
     bestMatch,
     otherMatches,
-    intro:
-      "Fit score reflects budget, commute, lifestyle, and move-in needs. Examples below — confirm with live listings before applying.",
+    intro: sampleMarket
+      ? "Fit score reflects budget, commute, lifestyle, and move-in needs using controlled San Diego / UCSD sample data. Confirm with live listings before applying."
+      : "This V2 demo uses controlled San Diego / UCSD sample data only, so this is sample-area guidance rather than a live search for your entered city.",
     fitExplanation: `${bestMatch.fitScore}% fit based on your budget, commute, room type, and priority choices.`,
     recommendedRoomType:
       bestMatch.roomType === preferences.roomType
