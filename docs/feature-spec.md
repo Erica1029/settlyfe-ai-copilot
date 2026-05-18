@@ -53,6 +53,8 @@ For V2 MVP, secondary fields remain safe internal defaults instead of user-facin
 - Top priorities: empty list.
 - Deal breakers: empty list.
 
+V2 MVP normal recommendations require both a San Diego city / area input and a UCSD destination input. Accepted destination wording includes UCSD, UC San Diego, and University of California San Diego. Do not infer UCSD from city alone; empty destinations, unsupported schools, unsupported cities, and city-school mismatches should show the unsupported-location result state.
+
 ### MockNeighborhood / MockRentalArea
 
 Represents a controlled San Diego rental direction or example area:
@@ -206,6 +208,7 @@ Show structured recommendation output based on user preferences and mock San Die
 - V2 AI may refine explanation wording only; rule-based recommendation facts remain the source of truth.
 - AI must not change price, commute, fit score, area name, room type, or ranking.
 - Unsupported-location and no-strong-match are product result states, not AI fallback states.
+- Unsupported-location applies to unsupported cities, unsupported destinations, empty destinations, and mismatched city-school inputs.
 - The screen may scroll vertically.
 - Use full-scroll Figma reference only to understand below-the-fold content.
 

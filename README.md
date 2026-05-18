@@ -22,6 +22,8 @@ Visible V2 MVP inputs:
 
 Secondary fields such as furniture need, private bathroom preference, move-in timeline, deal breakers, and top priorities are hidden or defaulted for MVP stability.
 
+Normal recommendation results are limited to the controlled San Diego / UCSD demo scope. The city or area must clearly be San Diego, and the school or workplace must clearly be UCSD, UC San Diego, or University of California San Diego. Unsupported cities, unsupported schools, mismatched city-school pairs, and empty destinations show the demo-area guardrail instead of a recommendation.
+
 ## V2 Scope
 
 - Mock rental and neighborhood data.
@@ -34,6 +36,8 @@ Secondary fields such as furniture need, private bathroom preference, move-in ti
 AI may refine explanation wording, watch-outs, next steps, and checklist wording. AI must not change price, commute, fit score, area name, room type, or ranking.
 
 Unsupported-location and no-strong-match states are product result states, not AI fallback. Technical fallback is only for provider failure, timeout, validation failure, missing key, or disabled AI.
+
+Unsupported-location and no-strong-match states skip `/api/ai-plan`. Normal supported results call `/api/ai-plan` for explanation wording only.
 
 ## Intentionally Out of Scope
 

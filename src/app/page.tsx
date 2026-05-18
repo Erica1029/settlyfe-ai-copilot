@@ -47,10 +47,33 @@ const otherMatchImages = [
 
 type ResultState = "normal" | "unsupported-location" | "no-strong-match";
 
+function normalizeDemoScopeInput(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[,.]/g, " ")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ");
+}
+
+function isSupportedSanDiegoCity(value: string) {
+  const normalized = normalizeDemoScopeInput(value);
+  return normalized === "san diego" || normalized === "san diego ca";
+}
+
+function isSupportedUcsdDestination(value: string) {
+  const normalized = normalizeDemoScopeInput(value);
+  return (
+    normalized === "ucsd" ||
+    normalized === "uc san diego" ||
+    normalized === "university of california san diego"
+  );
+}
+
 function isSupportedDemoScope(preferences: UserPreferences) {
   return (
-    /san diego/i.test(preferences.city) ||
-    /uc san diego|ucsd/i.test(preferences.destination)
+    isSupportedSanDiegoCity(preferences.city) &&
+    isSupportedUcsdDestination(preferences.destination)
   );
 }
 
@@ -264,8 +287,8 @@ export default function SettlyfeCopilotV1() {
 
   const validateMoveBasics = () => {
     const budget = Number(preferences.budget.replace(/[^0-9]/g, ""));
-    if (!preferences.city.trim() || !preferences.destination.trim() || !budget) {
-      setError("Please add your city, destination, and monthly budget.");
+    if (!preferences.city.trim() || !budget) {
+      setError("Please add your city and monthly budget.");
       return;
     }
     setScreen("housingNeeds");
@@ -416,6 +439,9 @@ function MoveBasicsScreen({
         onBack={onBack}
       />
       <div className="grid gap-2.5 px-4 pt-6">
+        <p className="rounded-[8px] bg-[#f6f5ff] px-3 py-2 text-[13px] leading-[19px] text-[#646165]">
+          Start with this sample San Diego / UCSD profile, or edit the details below.
+        </p>
         <TextField
           label="Target city or area"
           value={preferences.city}
@@ -588,11 +614,11 @@ function ResultScreen({
     return (
       <GuardrailResultScreen
         title="Demo area not available yet"
-        body={`This V2 demo currently uses controlled San Diego / UCSD sample data, so it can't generate a reliable match for ${formatLocationInput(preferences)} yet.`}
+        body={`This V2 demo currently supports San Diego / UCSD sample data. ${formatLocationInput(preferences)} is outside the current demo scope, so it can't generate a reliable commute or rental plan for this input yet.`}
         suggestions={[
           "Try San Diego, CA and UC San Diego to view the full AI rental plan demo.",
-          "Add live rental data in a future version to support more cities.",
-          "Expand the sample dataset before comparing unsupported locations.",
+          "Add destination-specific commute data in a future version.",
+          "Expand the sample dataset before comparing unsupported schools, workplaces, or cities.",
         ]}
         onBack={onBack}
         onRetry={onRetry}

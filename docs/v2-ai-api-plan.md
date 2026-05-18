@@ -33,6 +33,8 @@ For MVP stability, secondary preference fields are intentionally hidden from the
 - Deal breakers: `[]`.
 - Top priorities: `[]`.
 
+Normal V2 recommendation results are limited to matched San Diego / UCSD inputs. The target city or area must clearly be San Diego, and the school or workplace must clearly be UCSD, UC San Diego, or University of California San Diego. Do not infer UCSD from city alone; empty destinations, unsupported schools, unsupported cities, and mismatched city-school pairs should show the unsupported-location product state.
+
 ## 2. What AI Generates
 
 The AI layer can generate improved language for these controlled sections only:
@@ -51,6 +53,7 @@ The following must remain controlled by existing V1 logic:
 
 - User preference collection and validation.
 - Unsupported-location and no-strong-match result states.
+- Supported-scope validation for matched San Diego / UCSD demo inputs.
 - Mock San Diego / UCSD rental and neighborhood data.
 - Best-fit recommendation selection.
 - Fit score calculation.
@@ -259,7 +262,7 @@ Use existing rule-based copy when:
 - The AI response appears to invent unsupported facts.
 - Rate limits or provider errors occur.
 
-Unsupported-location and no-strong-match are product result states, not AI fallback states. They should be decided before AI enhancement and should not call `/api/ai-plan`.
+Unsupported-location and no-strong-match are product result states, not AI fallback states. They should be decided before AI enhancement and should not call `/api/ai-plan`. Unsupported-location covers unsupported cities, unsupported destinations, empty destinations, and city-school mismatches.
 
 Recommended client behavior:
 
@@ -352,6 +355,7 @@ Functional QA:
 - Full flow still works from Home to Moving Checklist.
 - V2 MVP preference flow only asks for city / area, school or workplace, monthly budget, max commute time, room type, car access, and optional lifestyle preference.
 - Hidden secondary preferences use safe defaults for furniture, bathroom, move-in timeline, deal breakers, and top priorities.
+- Normal recommendations require both San Diego city scope and UCSD destination scope.
 - Preference changes still change the rule-based recommendation.
 - Unsupported-location and no-strong-match states do not call AI and do not show confident recommendation sections.
 - Missing API key still completes the flow.

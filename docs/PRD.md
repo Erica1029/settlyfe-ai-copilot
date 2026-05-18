@@ -138,6 +138,13 @@ V2 AI is an explanation layer only. Rule-based recommendation facts remain the s
 
 Unsupported-location and no-strong-match states are product result states, not AI fallback. Technical fallback is only for AI provider failure, timeout, validation failure, missing key, or disabled AI.
 
+Normal V2 recommendations require both sides of the demo scope:
+
+- Target city or area must clearly be San Diego.
+- School or workplace must clearly be UCSD, UC San Diego, or University of California San Diego.
+
+Do not infer UCSD from city alone. Empty destinations, unsupported schools, unsupported cities, and mismatched city-school pairs show the unsupported-location product state and skip `/api/ai-plan`.
+
 ## AI Result Plan
 
 The AI Result Plan should render structured recommendation output, not a generic paragraph.
@@ -240,6 +247,7 @@ V1 is successful if:
 - Keep the simplified MVP preference flow.
 - Keep rental data controlled through mock or curated San Diego data.
 - Preserve the core flow and UI structure.
+- Keep broader school, workplace, city, and destination-specific commute support for V3.
 
 ### V3: Data-Connected City MVP
 
