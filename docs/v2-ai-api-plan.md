@@ -1,5 +1,9 @@
 # Settlyfe AI Copilot V2 AI API Plan
 
+## Status Note
+
+V2 is implemented and deployed to production. This document now serves as the V2 AI architecture and guardrail reference for the current AI-assisted demo.
+
 ## 1. V2 Goal and Scope
 
 V2 upgrades Settlyfe AI Copilot from an AI-style V1 demo into a real AI-assisted explanation experience while preserving the current product flow, UI, mock San Diego / UCSD rental data, and rule-based recommendation engine.

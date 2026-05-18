@@ -2,7 +2,7 @@
 
 Settlyfe AI Copilot V2 is a mobile-first rental planning demo that adds a real AI-assisted explanation layer while keeping recommendation facts controlled by local San Diego / UCSD sample data and rule-based logic.
 
-Stable V1 live demo: https://settlyfe-ai-copilot.vercel.app/
+Current V2 AI-assisted demo: https://settlyfe-ai-copilot.vercel.app/
 
 ## Core User Flow
 
