@@ -6,7 +6,8 @@ V2 upgrades Settlyfe AI Copilot from an AI-style V1 demo into a real AI-assisted
 
 The V2 goal is narrow:
 
-- Keep the same flow: Home -> Preferences -> AI Loading -> AI Result Plan -> Moving Checklist.
+- Keep the same high-level flow: Home -> Preferences -> AI Loading -> AI Result Plan -> Moving Checklist.
+- Use a simplified V2 MVP preference flow with only city / area, school or workplace, monthly budget, max commute time, room type, car access, and optional lifestyle preference.
 - Keep the same mobile-first Settlyfe UI and screen structure.
 - Keep local San Diego / UCSD mock rental and neighborhood data.
 - Keep the rule-based recommendation engine as the source of truth.
@@ -23,6 +24,14 @@ V2 should not add:
 - Real-time listing availability.
 - New UI screens or redesigned components.
 - Client-side API keys.
+
+For MVP stability, secondary preference fields are intentionally hidden from the user-facing flow and defaulted in state/request builders:
+
+- Furniture need: `flexible`.
+- Bathroom preference: `shared_ok`.
+- Move-in timeline: `standard`.
+- Deal breakers: `[]`.
+- Top priorities: `[]`.
 
 ## 2. What AI Generates
 
@@ -41,6 +50,7 @@ The AI should behave like a copy and reasoning layer over existing facts. It sho
 The following must remain controlled by existing V1 logic:
 
 - User preference collection and validation.
+- Unsupported-location and no-strong-match result states.
 - Mock San Diego / UCSD rental and neighborhood data.
 - Best-fit recommendation selection.
 - Fit score calculation.
@@ -249,6 +259,8 @@ Use existing rule-based copy when:
 - The AI response appears to invent unsupported facts.
 - Rate limits or provider errors occur.
 
+Unsupported-location and no-strong-match are product result states, not AI fallback states. They should be decided before AI enhancement and should not call `/api/ai-plan`.
+
 Recommended client behavior:
 
 - Generate and display the V1 rule-based result immediately or after the existing loading state.
@@ -338,7 +350,10 @@ Suggested file ownership for later:
 Functional QA:
 
 - Full flow still works from Home to Moving Checklist.
+- V2 MVP preference flow only asks for city / area, school or workplace, monthly budget, max commute time, room type, car access, and optional lifestyle preference.
+- Hidden secondary preferences use safe defaults for furniture, bathroom, move-in timeline, deal breakers, and top priorities.
 - Preference changes still change the rule-based recommendation.
+- Unsupported-location and no-strong-match states do not call AI and do not show confident recommendation sections.
 - Missing API key still completes the flow.
 - AI timeout still completes the flow.
 - Invalid AI JSON still completes the flow.
@@ -425,6 +440,7 @@ Guardrails:
 - Do not add map APIs.
 - Do not add database or login.
 - Keep San Diego mock data as the source for V2.
+- Keep richer preferences, live rental data, map/commute integrations, persistence, and broader city coverage for V3.
 - Keep V3 data and map planning separate from this V2 AI API upgrade.
 
 ## Proposed V2 Architecture Summary

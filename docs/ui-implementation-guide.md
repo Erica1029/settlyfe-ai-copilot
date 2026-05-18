@@ -49,21 +49,32 @@ Banner copy:
 
 - Label: `Settlyfe AI`
 - Title: `Not sure where to live?`
-- Body: `Settlyfe AI compares your budget, commute, room type, furniture needs, and move-in steps before you apply.`
+- Body: `Settlyfe AI compares your budget, commute, room type, and lifestyle tradeoffs before you apply.`
 - CTA: `Build my plan`
 
 ## 5. Preference Flow Implementation
 
-- Preference Input is a 3-step flow.
+- V2 MVP Preference Input is a 2-step flow.
 - Step 1: Move Basics.
-- Step 2: Housing Needs.
-- Step 3: Lifestyle & Priorities.
+- Step 2: Room and Lifestyle.
 - Use Settlyfe onboarding / application form style.
 - Use rounded inputs, radio rows, chips, and sticky bottom CTA.
 - Keep the form spacious but not decorative.
 - Step 2 may scroll slightly because content can extend behind the sticky bottom CTA.
 - Store all answers in a structured user preference state object.
 - Do not hard-code preference results directly in UI.
+
+V2 MVP user-facing inputs:
+
+- Target city or area.
+- School or workplace.
+- Monthly budget.
+- Max commute time.
+- Room type.
+- Car access.
+- Lifestyle preference.
+
+Hide or default furniture need, bathroom preference, move-in timeline, deal breakers, and top priorities for MVP stability.
 
 ## 6. Loading Screen Implementation
 
@@ -77,7 +88,7 @@ Show step list:
 - Reviewing your budget.
 - Comparing commute options.
 - Matching lifestyle preferences.
-- Checking furniture needs.
+- Checking room and car access.
 - Preparing your move-in plan.
 
 ## 7. AI Result Plan Implementation
@@ -181,6 +192,14 @@ Create reusable components where useful:
 - No real-time availability.
 - No broker / landlord / agent contact.
 - V1 should remain an interactive mock-data product demo.
+
+## 14. V2 MVP Constraints
+
+- V2 adds a server-side AI explanation layer only.
+- Rule-based recommendation facts remain the source of truth.
+- AI must not change price, commute, fit score, area name, room type, or ranking.
+- Unsupported-location and no-strong-match states are product result states, not AI fallback.
+- V3 can expand into richer preferences, live rental data, maps, persistence, and broader city coverage.
 
 ## 14. Implementation Handoff
 

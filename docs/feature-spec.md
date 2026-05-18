@@ -24,6 +24,11 @@ V1 implementation screens / states:
 6. AI Result Plan.
 7. Moving Checklist.
 
+V2 MVP simplifies the preference flow to two steps before loading:
+
+1. Preference Step 1 - Move Basics.
+2. Preference Step 2 - Room and Lifestyle.
+
 ## 2. Shared Data Model
 
 These are product-level structures. Implementation can translate them into TypeScript types later.
@@ -37,13 +42,16 @@ Stores the user's rental planning inputs:
 - Monthly budget.
 - Max commute time.
 - Room type.
-- Bathroom preference.
-- Furniture need.
 - Car ownership.
-- Move-in timeline.
 - Lifestyle preference.
-- Top priorities.
-- Deal breakers.
+
+For V2 MVP, secondary fields remain safe internal defaults instead of user-facing inputs:
+
+- Bathroom preference: shared-ok.
+- Furniture need: flexible.
+- Move-in timeline: standard.
+- Top priorities: empty list.
+- Deal breakers: empty list.
 
 ### MockNeighborhood / MockRentalArea
 
@@ -99,7 +107,7 @@ Introduce AI Copilot as a native feature inside the existing Settlyfe homepage.
 - AI Copilot banner.
 - Banner label: Settlyfe AI.
 - Title: Not sure where to live?
-- Body: Settlyfe AI compares your budget, commute, room type, furniture needs, and move-in steps before you apply.
+- Body: Settlyfe AI compares your budget, commute, room type, and lifestyle tradeoffs before you apply.
 - CTA: Build my plan.
 - Original 4-tab bottom navigation: Home, Find Homes, Messages, Account.
 - Do not add AI Copilot as a bottom tab.
@@ -129,37 +137,17 @@ Collect location and budget basics.
 - Invalid input shows compact error feedback.
 - Store values in structured local state.
 
-## 5. Screen 3: Preference Step 2 - Housing Needs
+## 5. Screen 3: Preference Step 2 - Room and Lifestyle
 
 ### Goal
 
-Collect housing requirement preferences.
+Collect the remaining core MVP preferences.
 
 ### Inputs
 
 - Room type.
-- Bathroom preference.
-- Furniture need.
 - Car ownership.
-- Move-in timeline.
-
-### Behavior
-
-- Next opens Preference Step 3.
-- This page may scroll slightly because content can extend behind the sticky bottom CTA.
-- Store values in structured local state.
-
-## 6. Screen 4: Preference Step 3 - Lifestyle & Priorities
-
-### Goal
-
-Collect lifestyle preference, top priorities, and deal breakers.
-
-### Inputs
-
 - Lifestyle preference.
-- Top priorities.
-- Deal breakers.
 
 ### Behavior
 
@@ -168,7 +156,7 @@ Collect lifestyle preference, top priorities, and deal breakers.
 - Invalid input shows compact error feedback.
 - Store values in structured local state.
 
-## 7. Screen 5: AI Loading
+## 6. Screen 4: AI Loading
 
 ### Goal
 
@@ -177,12 +165,12 @@ Simulate AI analysis and create a transition from input to result.
 ### Content
 
 - Loading title, such as Preparing your rental plan.
-- Short subtitle explaining the app is comparing budget, commute, lifestyle, and move-in needs.
+- Short subtitle explaining the app is comparing budget, commute, room type, car access, and lifestyle.
 - Step list:
   - Reviewing your budget.
   - Comparing commute options.
   - Matching lifestyle preferences.
-  - Checking furniture needs.
+  - Checking room and car access.
   - Preparing your move-in plan.
 
 ### Behavior
@@ -191,7 +179,7 @@ Simulate AI analysis and create a transition from input to result.
 - Loading animation does not need to exactly match one static screenshot.
 - Keep it lightweight and Settlyfe-native.
 
-## 8. Screen 6: AI Result Plan
+## 7. Screen 5: AI Result Plan
 
 ### Goal
 
@@ -215,6 +203,9 @@ Show structured recommendation output based on user preferences and mock San Die
 ### Important Notes
 
 - V1 recommendation cards represent example matches or area-level rental directions, not guaranteed live listings.
+- V2 AI may refine explanation wording only; rule-based recommendation facts remain the source of truth.
+- AI must not change price, commute, fit score, area name, room type, or ranking.
+- Unsupported-location and no-strong-match are product result states, not AI fallback states.
 - The screen may scroll vertically.
 - Use full-scroll Figma reference only to understand below-the-fold content.
 
@@ -240,10 +231,12 @@ Each alternative match should include:
 ### Behavior
 
 - Recommendation output should change based on user inputs.
+- Normal supported results call `/api/ai-plan`; unsupported-location and no-strong-match states skip AI.
+- Technical fallback is used only for provider failure, timeout, validation failure, missing key, or disabled AI.
 - CTA opens Moving Checklist.
 - Edit preferences returns to the preference flow.
 
-## 9. Screen 7: Moving Checklist
+## 8. Screen 6: Moving Checklist
 
 ### Goal
 
@@ -260,9 +253,7 @@ Convert the recommendation into practical actions.
 
 - Checklist items should reflect user preferences and recommendation risks.
 - If user has no car, include transit / commute verification tasks.
-- If user needs furniture, include furniture measuring and delivery tasks.
 - If parking is a risk, include parking questions.
-- If move-in timeline is soon, include urgent application and viewing tasks.
 - Fake Save Plan button can show local non-persistent confirmation state.
 - Page may scroll vertically if needed.
 
@@ -274,9 +265,8 @@ Product-level rules:
 - Higher budgets can recommend private room, studio, or closer areas.
 - Short commute limits prioritize close-in or transit-friendly neighborhoods.
 - No car prioritizes transit-friendly areas and adds commute verification tasks.
-- Furniture need adds furnished-search and furniture setup tasks.
 - Lifestyle preference affects area tags and watch-outs.
-- Deal breakers should influence warnings and ranking.
+- V3 can reintroduce richer preferences, live rental data, maps, persistence, and broader city coverage.
 
 ## 11. Implementation Guardrails
 

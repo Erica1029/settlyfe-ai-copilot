@@ -331,23 +331,24 @@ Banner copy:
 
 - Label: `Settlyfe AI`
 - Title: `Not sure where to live?`
-- Body: `Settlyfe AI compares your budget, commute, room type, furniture needs, and move-in steps before you apply.`
+- Body: `Settlyfe AI compares your budget, commute, room type, and lifestyle tradeoffs before you apply.`
 - CTA: `Build my plan`
 
 ### Preference Input
 
-Preference Input is a 3-step flow:
+V2 MVP Preference Input is a 2-step flow:
 
 - Move Basics.
-- Housing Needs.
-- Lifestyle & Priorities.
+- Room and Lifestyle.
 
 Use the existing Settlyfe onboarding/application form pattern:
 
 - Use rounded input fields, radio rows, chips, a step indicator, and sticky bottom CTA.
 - Keep each step focused and easy to scan.
 - Preference input fields should use 14px labels, 16px / approximately 23px value text, and an approximately 52px visual field height.
-- Preference Step 2 and Step 3 should keep the status/header and bottom CTA fixed inside the mobile frame; only the middle question content should scroll when needed.
+- Preference Step 2 should keep the status/header and bottom CTA fixed inside the mobile frame; only the middle question content should scroll when needed.
+- Keep only city / area, school or workplace, monthly budget, max commute time, room type, car access, and lifestyle preference visible for V2 MVP.
+- Hide or default furniture need, bathroom preference, move-in timeline, deal breakers, and top priorities.
 
 ### AI Analysis Loading
 
@@ -355,7 +356,7 @@ Use a lightweight loading state:
 
 - Spinner or simple progress animation.
 - Short reassurance copy.
-- Step list such as budget, commute, lifestyle, room type, moving checklist.
+- Step list such as budget, commute, lifestyle, room type, car access, and moving checklist.
 - White background.
 
 ### AI Result Plan

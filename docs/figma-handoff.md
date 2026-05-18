@@ -60,15 +60,16 @@ Banner copy:
 
 - Label: `Settlyfe AI`
 - Title: `Not sure where to live?`
-- Body: `Settlyfe AI compares your budget, commute, room type, furniture needs, and move-in steps before you apply.`
+- Body: `Settlyfe AI compares your budget, commute, room type, and lifestyle tradeoffs before you apply.`
 - CTA: `Build my plan`
 
 ## 5. Preference Screens Handoff
 
-- Preference Input is implemented as a 3-step flow.
+- V2 MVP Preference Input is implemented as a 2-step flow.
 - Step 1: Move Basics.
-- Step 2: Housing Needs.
-- Step 3: Lifestyle & Priorities.
+- Step 2: Room and Lifestyle.
+- Visible inputs are city / area, school or workplace, monthly budget, max commute time, room type, car access, and lifestyle preference.
+- Furniture need, bathroom preference, move-in timeline, deal breakers, and top priorities are hidden or defaulted.
 - Follow Settlyfe onboarding/application form style.
 - Use clean top navigation with a back action.
 - Use step indicators where shown in Figma.
@@ -88,7 +89,7 @@ Show analysis steps:
 - Reviewing your budget.
 - Comparing commute options.
 - Matching lifestyle preferences.
-- Checking furniture needs.
+- Checking room and car access.
 - Preparing your move-in plan.
 
 ## 7. AI Result Plan Handoff

@@ -74,7 +74,9 @@ Make the demo feel genuinely AI-assisted without depending on unstable live rent
 - Add a real AI API through a server-side route.
 - Keep listings controlled through mock or curated San Diego data.
 - Use AI to generate recommendation explanations, watch-outs, next steps, and checklist items.
-- Preserve the V1 preference flow and recommendation UI structure.
+- Simplify the V2 MVP preference flow to city / area, school or workplace, monthly budget, max commute time, room type, car access, and optional lifestyle preference.
+- Hide or default secondary fields such as furniture need, private bathroom preference, move-in timeline, deal breakers, and top priorities for MVP stability.
+- Preserve the core recommendation UI structure.
 
 ### AI Responsibilities
 
@@ -94,6 +96,9 @@ V2 should not depend on live rental data. Controlled San Diego mock or curated d
 
 - Add the AI API behind a server-side route so API keys are not exposed to the client.
 - Keep AI output structured so the UI can render it predictably.
+- Keep AI as an explanation layer only; rule-based facts remain the source of truth.
+- Do not allow AI to change price, commute, fit score, area name, room type, or ranking.
+- Treat unsupported-location and no-strong-match as product result states, not AI fallback states.
 - Maintain fallback mock explanations in case AI generation fails.
 - Do not redesign the whole app when adding AI. Replace or enhance only the explanation layer.
 
@@ -107,6 +112,7 @@ Move from a portfolio demo toward a realistic city-level MVP, starting with San 
 
 - Explore real or semi-real city-level rental data, starting with San Diego.
 - Add commute, map, neighborhood, or place data.
+- Revisit richer preference capture once live data and broader city coverage can support it.
 - Consider Supabase or Firebase for persistence.
 - Evaluate saved plans, user sessions, and more realistic recommendation history.
 - Keep the product logic extensible to other high-mobility rental markets such as Shanghai, Hong Kong, New York, and other student or intern relocation cities.

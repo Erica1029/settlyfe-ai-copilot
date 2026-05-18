@@ -4,14 +4,14 @@
 
 Settlyfe AI Copilot is a mobile-first AI rental planning assistant embedded inside the existing Settlyfe rental app. It is not a standalone AI product.
 
-The feature helps students, interns, and young renters clarify budget, commute, room type, lifestyle, furniture needs, and move-in preparation before they browse listings or apply for housing.
+The feature helps students, interns, and young renters clarify budget, commute, room type, lifestyle tradeoffs, and move-in preparation before they browse listings or apply for housing.
 
 V1 is an interactive mock-data product demo. It validates the core AI Copilot flow and recommendation structure without relying on real AI or live rental data.
 
 Version structure:
 
 - V1 = Interactive mock-data demo.
-- V2 = AI-powered recommendation explanation.
+- V2 = AI-powered recommendation explanation with a simplified MVP preference flow.
 - V3 = Data-connected city MVP.
 
 ## First Validation Market
@@ -78,9 +78,20 @@ Home Entry -> Preference Input -> AI Loading -> AI Result Plan -> Moving Checkli
 6. AI Result Plan.
 7. Moving Checklist.
 
+### V2 MVP Screens / States
+
+V2 keeps the same high-level journey but simplifies the preference flow to reduce edge cases:
+
+1. Home with AI Copilot banner.
+2. Preference Step 1 - Move Basics.
+3. Preference Step 2 - Room and Lifestyle.
+4. AI Loading.
+5. AI Result Plan or product guardrail state.
+6. Moving Checklist for normal supported results.
+
 ## Preference Input
 
-Preference Input is a 3-step flow to keep the mobile experience focused.
+V1 Preference Input is a 3-step flow to keep the mobile experience focused. V2 MVP uses the simplified 2-step flow below in `V2 MVP Preference Scope`.
 
 ### Step 1 - Move Basics
 
@@ -102,6 +113,30 @@ Preference Input is a 3-step flow to keep the mobile experience focused.
 - Lifestyle preference.
 - Top priorities.
 - Deal breakers.
+
+### V2 MVP Preference Scope
+
+The V2 MVP user-facing flow keeps only:
+
+- Target city or area.
+- School or workplace.
+- Monthly budget.
+- Max commute time.
+- Room type.
+- Car access.
+- Lifestyle preference.
+
+Secondary fields are intentionally hidden or defaulted for MVP stability:
+
+- Furniture need defaults to flexible.
+- Bathroom preference defaults to shared-ok.
+- Move-in timeline defaults to standard.
+- Deal breakers default to an empty list.
+- Top priorities default to an empty list.
+
+V2 AI is an explanation layer only. Rule-based recommendation facts remain the source of truth, and AI must not change price, commute, fit score, area name, room type, or ranking.
+
+Unsupported-location and no-strong-match states are product result states, not AI fallback. Technical fallback is only for AI provider failure, timeout, validation failure, missing key, or disabled AI.
 
 ## AI Result Plan
 
@@ -137,9 +172,8 @@ Checklist items should reflect recommendation risks and user preferences, such a
 - Parking.
 - Utilities.
 - Commute.
-- Furniture needs.
-- Private bathroom or roommate expectations.
-- Move-in timing.
+- Roommate expectations.
+- First-week setup tasks.
 
 ## MVP Scope
 
@@ -203,8 +237,9 @@ V1 is successful if:
 ### V2: AI-Powered Recommendation Explanation
 
 - Add a real AI API for recommendation explanation, watch-outs, next steps, and checklist generation.
+- Keep the simplified MVP preference flow.
 - Keep rental data controlled through mock or curated San Diego data.
-- Preserve the V1 flow and UI structure.
+- Preserve the core flow and UI structure.
 
 ### V3: Data-Connected City MVP
 

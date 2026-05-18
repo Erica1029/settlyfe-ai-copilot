@@ -8,7 +8,7 @@ It supports North America student and young-renter housing scenarios. San Diego 
 
 San Diego is not the only future market. The product logic and data model should remain extensible to other high-mobility rental markets such as Shanghai, Hong Kong, New York, and other student or intern relocation cities.
 
-The goal is to help users clarify budget, commute, room type, lifestyle, furniture needs, and move-in preparation before they browse listings.
+The goal is to help users clarify budget, commute, room type, lifestyle tradeoffs, and move-in preparation before they browse listings.
 
 The final project should be suitable for a portfolio case study, live interview demo, and future product iteration.
 
@@ -43,6 +43,15 @@ The V1 implementation expands the 5 product stages into 7 screens or states:
 7. Moving Checklist.
 
 This structure keeps the product journey simple while making the preference input flow easier to complete on mobile.
+
+V2 MVP keeps the same high-level journey but uses a simpler 6-state flow:
+
+1. Home with AI Copilot banner.
+2. Preference Step 1 - Move Basics.
+3. Preference Step 2 - Room and Lifestyle.
+4. AI Loading.
+5. AI Result Plan or product guardrail state.
+6. Moving Checklist for normal supported results.
 
 ## V1 Workflow
 
@@ -96,11 +105,16 @@ V2 can add a real AI API for:
 
 V2 should still keep listing data controlled through mock or curated San Diego data, so the demo feels genuinely AI-assisted without depending on unstable live rental data.
 
+For the V2 MVP, the user-facing preference flow is simplified to city / area, school or workplace, monthly budget, max commute time, room type, car access, and optional lifestyle preference. Furniture need, private bathroom preference, move-in timeline, deal breakers, and top priorities are hidden or defaulted to reduce edge cases.
+
+V2 AI is an explanation layer only. Rule-based recommendation facts remain the source of truth, and AI must not change prices, commute values, fit scores, area names, room types, or ranking. Unsupported-location and no-strong-match states are product result states; AI fallback is reserved for provider failure, timeout, invalid output, missing key, or disabled AI.
+
 V3 can explore:
 
 - Real or semi-real rental data.
 - Commute or map data.
 - Neighborhood or place data.
+- Richer preference capture and broader city coverage.
 - Persistence through tools such as Supabase or Firebase.
 
 V3 is a data-connected city MVP. San Diego is the first validation city, but the product logic should remain extensible to other high-mobility rental markets such as Shanghai, Hong Kong, New York, and other student or intern relocation cities.

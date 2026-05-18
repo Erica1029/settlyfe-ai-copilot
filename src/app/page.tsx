@@ -29,18 +29,13 @@ import {
 
 const commuteOptions = ["15 min", "30 min", "45 min", "60 min"];
 const roomTypeOptions = ["Private room", "Shared room", "Studio", "Entire unit"];
-const bathroomOptions = ["Private", "Shared", "No preference"];
-const furnitureOptions = ["Fully", "Partially", "Unfurnished"];
 const carOptions = ["Yes", "No"];
-const timelineOptions = ["ASAP", "Within 1 month", "1-3 months"];
 const lifestyleOptions = ["Quiet and focused", "Social and active", "Balanced"];
-const priorityOptions = ["Budget", "Commute", "Safety", "Lifestyle", "Furniture", "Amenities"];
-const dealBreakerOptions = ["Over budget", "Long commute", "No parking", "Too noisy", "Unfurnished"];
 const loadingSteps = [
   "Reviewing your budget",
   "Comparing commute options",
   "Matching lifestyle preferences",
-  "Checking furniture needs",
+  "Checking room and car access",
   "Preparing your move-in plan",
 ];
 const otherMatchImages = [
@@ -267,17 +262,6 @@ export default function SettlyfeCopilotV1() {
     setError("");
   };
 
-  const toggleMulti = (key: "priorities" | "dealBreakers", value: string) => {
-    setPreferences((current) => {
-      const exists = current[key].includes(value);
-      const next = exists
-        ? current[key].filter((item) => item !== value)
-        : [...current[key], value];
-      return { ...current, [key]: next };
-    });
-    setError("");
-  };
-
   const validateMoveBasics = () => {
     const budget = Number(preferences.budget.replace(/[^0-9]/g, ""));
     if (!preferences.city.trim() || !preferences.destination.trim() || !budget) {
@@ -285,14 +269,6 @@ export default function SettlyfeCopilotV1() {
       return;
     }
     setScreen("housingNeeds");
-  };
-
-  const validateLifestyle = () => {
-    if (!preferences.lifestyle || preferences.priorities.length === 0) {
-      setError("Please choose a lifestyle preference and at least one priority.");
-      return;
-    }
-    setScreen("loading");
   };
 
   const completedCount = useMemo(() => {
@@ -331,18 +307,7 @@ export default function SettlyfeCopilotV1() {
           preferences={preferences}
           onBack={() => setScreen("moveBasics")}
           onChange={updatePreference}
-          onNext={() => setScreen("lifestylePriorities")}
-        />
-      ) : null}
-
-      {screen === "lifestylePriorities" ? (
-        <LifestylePrioritiesScreen
-          preferences={preferences}
-          error={error}
-          onBack={() => setScreen("housingNeeds")}
-          onChange={updatePreference}
-          onToggle={toggleMulti}
-          onGenerate={validateLifestyle}
+          onGenerate={() => setScreen("loading")}
         />
       ) : null}
 
@@ -352,7 +317,7 @@ export default function SettlyfeCopilotV1() {
         <ResultScreen
           preferences={preferences}
           recommendation={recommendation}
-          onBack={() => setScreen("lifestylePriorities")}
+          onBack={() => setScreen("housingNeeds")}
           onChecklist={() => setScreen("checklist")}
           onRetry={() => setScreen("moveBasics")}
         />
@@ -403,8 +368,8 @@ function HomeScreen({ onStart }: { onStart: () => void }) {
                 className="mt-2 w-[153px] text-[10px] leading-[16px] tracking-0 text-[#262628]"
                 style={{ fontFamily: "Avenir, 'Avenir Next', Inter, system-ui, sans-serif" }}
               >
-                Settlyfe AI compares your budget, commute, room type, furniture needs,
-                and move-in steps before you apply.
+                Settlyfe AI compares your budget, commute, room type, and
+                lifestyle tradeoffs before you apply.
               </p>
               <Button
                 onClick={onStart}
@@ -445,7 +410,7 @@ function MoveBasicsScreen({
   return (
     <div className="flex h-full flex-col bg-white">
       <StepHeader
-        step="1 of 3"
+        step="1 of 2"
         title="Tell us where you're moving"
         body="A few basics so we can match the right homes."
         onBack={onBack}
@@ -500,19 +465,19 @@ function HousingNeedsScreen({
   preferences,
   onBack,
   onChange,
-  onNext,
+  onGenerate,
 }: {
   preferences: UserPreferences;
   onBack: () => void;
   onChange: <K extends keyof UserPreferences>(key: K, value: UserPreferences[K]) => void;
-  onNext: () => void;
+  onGenerate: () => void;
 }) {
   return (
     <div className="flex h-full flex-col bg-white">
       <StepHeader
-        step="2 of 3"
-        title="Housing needs"
-        body="A few details about the kind of home you need."
+        step="2 of 2"
+        title="Room and lifestyle"
+        body="Keep the plan focused with only the core tradeoffs."
         onBack={onBack}
       />
       <div className="scrollbar-hidden flex-1 overflow-y-auto">
@@ -528,65 +493,11 @@ function HousingNeedsScreen({
             ))}
           </ChoiceGroup>
           <ChipGroup
-            title="Bathroom preference"
-            options={bathroomOptions}
-            selected={preferences.bathroom}
-            onSelect={(value) => onChange("bathroom", value)}
-          />
-          <ChipGroup
-            title="Furniture need"
-            options={furnitureOptions}
-            selected={preferences.furniture}
-            onSelect={(value) => onChange("furniture", value)}
-          />
-          <ChipGroup
             title="Do you have a car?"
             options={carOptions}
             selected={preferences.hasCar}
             onSelect={(value) => onChange("hasCar", value)}
           />
-          <ChipGroup
-            title="Move-in timeline"
-            options={timelineOptions}
-            selected={preferences.moveInTimeline}
-            onSelect={(value) => onChange("moveInTimeline", value)}
-          />
-        </div>
-      </div>
-      <StickyFooter>
-        <Button onClick={onNext} className="w-full">
-          Next
-        </Button>
-      </StickyFooter>
-    </div>
-  );
-}
-
-function LifestylePrioritiesScreen({
-  preferences,
-  error,
-  onBack,
-  onChange,
-  onToggle,
-  onGenerate,
-}: {
-  preferences: UserPreferences;
-  error: string;
-  onBack: () => void;
-  onChange: <K extends keyof UserPreferences>(key: K, value: UserPreferences[K]) => void;
-  onToggle: (key: "priorities" | "dealBreakers", value: string) => void;
-  onGenerate: () => void;
-}) {
-  return (
-    <div className="flex h-full flex-col bg-white">
-      <StepHeader
-        step="3 of 3"
-        title="Lifestyle and priorities"
-        body="This helps us pick the area and the right tradeoffs for you."
-        onBack={onBack}
-      />
-      <div className="scrollbar-hidden flex-1 overflow-y-auto">
-        <div className="grid gap-4 px-4 pb-4 pt-6">
           <ChoiceGroup title="Lifestyle preference">
             {lifestyleOptions.map((option) => (
               <RadioOption
@@ -597,23 +508,6 @@ function LifestylePrioritiesScreen({
               />
             ))}
           </ChoiceGroup>
-          <MultiChipGroup
-            title="Top priorities"
-            options={priorityOptions}
-            selected={preferences.priorities}
-            onToggle={(value) => onToggle("priorities", value)}
-          />
-          <MultiChipGroup
-            title="Deal breakers"
-            options={dealBreakerOptions}
-            selected={preferences.dealBreakers}
-            onToggle={(value) => onToggle("dealBreakers", value)}
-          />
-          {error ? (
-            <p className="rounded-[8px] bg-[#fff5eb] px-3 py-2 text-[13px] text-[#9a5400]">
-              {error}
-            </p>
-          ) : null}
         </div>
       </div>
       <StickyFooter>
@@ -637,7 +531,7 @@ function LoadingScreen({ currentStep }: { currentStep: number }) {
           <div className="mt-7 text-center">
             <h1 className="text-[22px] leading-[28px]">Preparing your rental plan</h1>
             <p className="mx-auto mt-3 max-w-[260px] text-[15px] leading-[24px] text-[#77777a]">
-              We're comparing budget, commute, lifestyle, and move-in needs.
+              We're comparing budget, commute, room type, car access, and lifestyle.
             </p>
           </div>
           <div className="mt-10 rounded-[8px] bg-white p-6 shadow-[0_14px_36px_rgba(0,0,0,0.05)]">
@@ -940,34 +834,6 @@ function ChipGroup({
             label={option}
             selected={selected === option}
             onClick={() => onSelect(option)}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function MultiChipGroup({
-  title,
-  options,
-  selected,
-  onToggle,
-}: {
-  title: string;
-  options: string[];
-  selected: string[];
-  onToggle: (value: string) => void;
-}) {
-  return (
-    <section>
-      <SectionTitle>{title}</SectionTitle>
-      <div className="mt-2.5 flex flex-wrap gap-2">
-        {options.map((option) => (
-          <Chip
-            key={option}
-            label={option}
-            selected={selected.includes(option)}
-            onClick={() => onToggle(option)}
           />
         ))}
       </div>
