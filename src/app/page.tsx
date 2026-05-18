@@ -64,7 +64,12 @@ function getResultState(
   recommendation: RecommendationResult,
 ): ResultState {
   if (!isSupportedDemoScope(preferences)) return "unsupported-location";
-  if (recommendation.bestMatch.rawScore < 60) return "no-strong-match";
+  if (
+    recommendation.bestMatch.rawScore < 60 ||
+    isFarBelowCheapestSampleRent(preferences, recommendation)
+  ) {
+    return "no-strong-match";
+  }
   return "normal";
 }
 
@@ -80,12 +85,41 @@ const toBudget = (value: string) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
-function getNoStrongMatchSuggestions(preferences: UserPreferences) {
+function getCandidateRents(recommendation: RecommendationResult) {
+  return [recommendation.bestMatch, ...recommendation.otherMatches].map((match) => match.price);
+}
+
+function getCheapestAvailableRent(recommendation: RecommendationResult) {
+  return Math.min(...getCandidateRents(recommendation));
+}
+
+function isFarBelowCheapestSampleRent(
+  preferences: UserPreferences,
+  recommendation: RecommendationResult,
+) {
+  const budget = toBudget(preferences.budget);
+  const cheapestRent = getCheapestAvailableRent(recommendation);
+  return budget > 0 && Number.isFinite(cheapestRent) && budget < cheapestRent * 0.7;
+}
+
+function formatRent(value: number) {
+  return `$${value.toLocaleString()}/mo`;
+}
+
+function getNoStrongMatchSuggestions(
+  preferences: UserPreferences,
+  recommendation: RecommendationResult,
+) {
   const suggestions: string[] = [];
   const budget = toBudget(preferences.budget);
   const commute = Number(preferences.commute);
+  const cheapestRent = getCheapestAvailableRent(recommendation);
 
-  if (budget > 0 && budget < 1000) {
+  if (isFarBelowCheapestSampleRent(preferences, recommendation)) {
+    suggestions.push(
+      `Increase budget closer to the lowest available sample rent. Lowest sample option starts around ${formatRent(cheapestRent)}.`,
+    );
+  } else if (budget > 0 && budget < 1000) {
     suggestions.push("Increase monthly budget to open more realistic San Diego / UCSD options.");
   }
   if (Number.isFinite(commute) && commute <= 15) {
@@ -320,6 +354,7 @@ export default function SettlyfeCopilotV1() {
           recommendation={recommendation}
           onBack={() => setScreen("lifestylePriorities")}
           onChecklist={() => setScreen("checklist")}
+          onRetry={() => setScreen("moveBasics")}
         />
       ) : null}
 
@@ -645,11 +680,13 @@ function ResultScreen({
   recommendation,
   onBack,
   onChecklist,
+  onRetry,
 }: {
   preferences: UserPreferences;
   recommendation: RecommendationResult;
   onBack: () => void;
   onChecklist: () => void;
+  onRetry: () => void;
 }) {
   const resultState = getResultState(preferences, recommendation);
 
@@ -664,6 +701,7 @@ function ResultScreen({
           "Expand the sample dataset before comparing unsupported locations.",
         ]}
         onBack={onBack}
+        onRetry={onRetry}
       />
     );
   }
@@ -673,8 +711,9 @@ function ResultScreen({
       <GuardrailResultScreen
         title="No strong match yet"
         body="Your current budget, commute, room, and housing preferences are difficult to satisfy within the controlled San Diego / UCSD sample data."
-        suggestions={getNoStrongMatchSuggestions(preferences)}
+        suggestions={getNoStrongMatchSuggestions(preferences, recommendation)}
         onBack={onBack}
+        onRetry={onRetry}
       />
     );
   }
@@ -741,11 +780,13 @@ function GuardrailResultScreen({
   body,
   suggestions,
   onBack,
+  onRetry,
 }: {
   title: string;
   body: string;
   suggestions: string[];
   onBack: () => void;
+  onRetry: () => void;
 }) {
   return (
     <div className="flex h-full flex-col bg-[#f7f7f8]">
@@ -776,6 +817,11 @@ function GuardrailResultScreen({
             ))}
           </ul>
         </section>
+        <div className="mt-6">
+          <Button onClick={onRetry} className="w-full">
+            Try another search
+          </Button>
+        </div>
       </div>
     </div>
   );
